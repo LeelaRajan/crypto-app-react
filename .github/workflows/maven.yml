@@ -30,7 +30,7 @@ jobs:
       
       - name: Tag Docker image for ECR
         run: |
-          docker tag react:latest 013335838002.dkr.ecr.ap-southeast-1.amazonaws.com/react:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
+          docker tag react:${{ steps.set_build_number.outputs.BUILD_NUMBER }} 013335838002.dkr.ecr.ap-southeast-1.amazonaws.com/react:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
 
       - name: Push Docker image to Amazon ECR
         run: |
