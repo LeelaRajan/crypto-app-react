@@ -1,0 +1,8 @@
+# Ignore Dockerfile
+Dockerfile
+
+# Ignore docker-compose.yml
+docker-compose.yml
+
+# Ignore .gitignore
+.gitignore
