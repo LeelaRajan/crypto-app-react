@@ -53,11 +53,11 @@ jobs:
 
       - name: Pull Docker image from Docker Hub
         run: |
-          sudo docker pull 013335838002.dkr.ecr.ap-southeast-1.amazonaws.com/react:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
+          docker pull 013335838002.dkr.ecr.ap-southeast-1.amazonaws.com/react:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
     
       - name: Stop and remove existing container
         run: |
-          sudo docker stop my_app || true && docker rm my_app || true
+          docker stop my_app || true && docker rm my_app || true
     
       - name: Run Docker container
         run: |
