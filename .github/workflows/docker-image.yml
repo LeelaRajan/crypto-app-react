@@ -1,4 +1,4 @@
-name: ECR Build, Push, and Deploy
+name: Deploy to S3
 
 on:
   push:
@@ -6,58 +6,24 @@ on:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-
-      - name: Checkout repository
-        uses: actions/checkout@v2
-    
-      - name: Set build number
-        id: set_build_number
-        run: echo "::set-output name=BUILD_NUMBER::${GITHUB_RUN_NUMBER}"
-
-      - name: Login to Amazon ECR
-        run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 013335838002.dkr.ecr.ap-southeast-1.amazonaws.com
-
-      - name: Build Docker image
-        run: |
-          docker build -t react:${{ steps.set_build_number.outputs.BUILD_NUMBER }} .
-      
-      - name: Tag Docker image for ECR
-        run: |
-          docker tag react:${{ steps.set_build_number.outputs.BUILD_NUMBER }} 013335838002.dkr.ecr.ap-southeast-1.amazonaws.com/react:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
-
-      - name: Push Docker image to Amazon ECR
-        run: |
-          docker push 013335838002.dkr.ecr.ap-southeast-1.amazonaws.com/react:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
-
   deploy:
-    name: Deploy Docker Image
-    runs-on: self-hosted
-    needs: build
+    runs-on: ubuntu-latest
+    
     steps:
-      - name: Set build number
-        id: set_build_number
-        run: echo "::set-output name=BUILD_NUMBER::${GITHUB_RUN_NUMBER}"
-      
-      - name: Login to Amazon ECR
-        run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 013335838002.dkr.ecr.ap-southeast-1.amazonaws.com
+    - name: Checkout Repository
+      uses: actions/checkout@v2
 
-      - name: Pull Docker image from Docker Hub
-        run: |
-          docker pull 013335838002.dkr.ecr.ap-southeast-1.amazonaws.com/react:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
-    
-      - name: Stop and remove existing container
-        run: |
-          docker stop my_app || true && docker rm my_app || true
-    
-      - name: Run Docker container
-        run: |
-          docker run -d -p 3000:3000 --name my_app 013335838002.dkr.ecr.ap-southeast-1.amazonaws.com/react:${{ steps.set_build_number.outputs.BUILD_NUMBER }} npm start
+    - name: Install AWS CLI
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y awscli
+        
+    - name: Configure AWS Credentials
+      run: |
+        aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws configure set default.region ${{ secrets.AWS_DEFAULT_REGION }}
+
+    - name: Sync Files to S3 Bucket
+      run: aws s3 sync . s3://your-s3-bucket-name --delete
+
