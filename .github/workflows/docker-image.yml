@@ -20,5 +20,5 @@ jobs:
         
 
     - name: Sync Files to S3 Bucket
-      run: aws s3 sync . s3://demo-crypto-app --delete
+      run: aws s3 sync ./public/ s3://demo-crypto-app --delete
 
